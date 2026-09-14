@@ -5,7 +5,7 @@ import { Info, ExternalLink } from 'lucide-react';
 
 export default function DisclaimerBanner() {
   return (
-    <div className="bg-[#2c2827] text-white text-xs py-2.5 px-4 border-b border-[#0b8454] max-w-full overflow-x-hidden">
+    <div className="bg-[#2c2827] text-white text-xs py-2.5 px-4 border-b border-[#0b8454] relative z-50">
       <div className="max-w-[1200px] mx-auto flex items-center justify-between gap-3 flex-wrap break-words [overflow-wrap:anywhere]">
         <div className="flex items-center gap-2 flex-1 min-w-[260px] break-words">
           <Info className="w-4 h-4 text-[#f5a623] shrink-0" />

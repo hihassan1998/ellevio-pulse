@@ -5,9 +5,9 @@ import { Sparkles, BarChart3, Users, Bot, ExternalLink, MapPin } from 'lucide-re
 
 export default function ExecutiveSummaryBanner() {
   return (
-    <div className="card-ellevio border-l-4 border-l-[#0b8454] mb-8 bg-white max-w-full overflow-x-hidden break-words [overflow-wrap:anywhere]">
+    <div className="card-ellevio border-l-4 border-l-[#0b8454] mb-8 bg-white max-w-full relative">
       <div className="flex items-center gap-2 mb-3 flex-wrap">
-        <span className="bg-[#e7f6f0] text-[#0b8454] text-xs font-bold px-3 py-1 rounded-full border border-[#0b8454]/20 flex items-center gap-1.5 max-w-full break-words">
+        <span className="bg-[#e7f6f0] text-[#0b8454] text-xs font-bold px-3 py-1 rounded-full border border-[#0b8454]/20 inline-flex items-center gap-1.5 max-w-full">
           <Sparkles className="w-3.5 h-3.5 fill-current shrink-0" />
           <span className="break-words">Till Ellevios Rekryteringsteam – Strategisk Webb- & UX-Analys</span>
         </span>

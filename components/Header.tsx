@@ -5,8 +5,8 @@ import { Zap, ShieldCheck, Accessibility, ExternalLink } from 'lucide-react';
 
 export default function Header() {
   return (
-    <header className="bg-white border-b border-[#e5e3e1] shadow-xs">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+    <header className="bg-white border-b border-[#e5e3e1] shadow-xs relative z-40">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 min-h-[5rem] py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Brand Logo */}
         <div className="flex items-center space-x-3">
           <div className="bg-[#0b8454] p-2 rounded-lg text-white">
