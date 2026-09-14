@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Calculator, Car, WashingMachine, Zap, Moon, Sun, Sunrise, Sunset, Clock, Sparkles } from 'lucide-react';
+import { Calculator, Car, WashingMachine, Zap, Moon, Sun, Sunrise, Sunset, Sparkles } from 'lucide-react';
 import { ZoneStats, IntervalPrices } from '@/lib/elpris';
 
 export default function ImpactCalculator({ stats }: { stats: ZoneStats[] }) {
@@ -36,11 +36,12 @@ export default function ImpactCalculator({ stats }: { stats: ZoneStats[] }) {
   const currentCost = Math.round((currentPrice * getKwh()) / 100);
 
   // Compute best (cheapest) and worst (highest) slots for recommendations
-  const slots: { id: 'night' | 'morning' | 'afternoon' | 'evening'; name: string; price: number }[] = [
-    { id: 'night', name: '00:00–06:00 (Natt)', price: currentStats.intervals.slot_00_06 },
-    { id: 'morning', name: '06:00–12:00 (Morgon)', price: currentStats.intervals.slot_06_12 },
-    { id: 'afternoon', name: '12:00–18:00 (Eftermiddag)', price: currentStats.intervals.slot_12_18 },
-    { id: 'evening', name: '18:00–24:00 (Kväll)', price: currentStats.intervals.slot_18_24 }
+  type SlotType = { id: 'night' | 'morning' | 'afternoon' | 'evening'; name: string; price: number };
+  const slots: SlotType[] = [
+    { id: 'night' as const, name: '00:00–06:00 (Natt)', price: currentStats.intervals.slot_00_06 },
+    { id: 'morning' as const, name: '06:00–12:00 (Morgon)', price: currentStats.intervals.slot_06_12 },
+    { id: 'afternoon' as const, name: '12:00–18:00 (Eftermiddag)', price: currentStats.intervals.slot_12_18 },
+    { id: 'evening' as const, name: '18:00–24:00 (Kväll)', price: currentStats.intervals.slot_18_24 }
   ].sort((a, b) => a.price - b.price);
 
   const cheapestSlot = slots[0];

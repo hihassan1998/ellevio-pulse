@@ -1,5 +1,6 @@
 import React from 'react';
 import { getAggregatedPrices } from '@/lib/elpris';
+import ExecutiveSummaryBanner from '@/components/ExecutiveSummaryBanner';
 import PriceChart from '@/components/PriceChart';
 import ZoneStatsCards from '@/components/ZoneStatsCards';
 import ImpactCalculator from '@/components/ImpactCalculator';
@@ -12,15 +13,8 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-8">
-      {/* Introduction banner */}
-      <div className="card-ellevio border-l-4 border-l-[#0b8454]">
-        <h1 className="text-2xl font-bold text-[#2c2827] tracking-tight">
-          Välkommen till Ellevio<span className="text-[#0b8454]">Pulse</span>
-        </h1>
-        <p className="text-sm text-[#757575] mt-2 max-w-3xl leading-relaxed">
-          Detta demoprojekt visar hur Ellevios digitala kanaler kan visualisera realtidskunddata från Sveriges fyra elområden (SE1–SE4), förenkla komplexa elnätskoncept och nyttja Generativ AI för snabb kundtjänststöttning.
-        </p>
-      </div>
+      {/* Executive Strategy Banner for Hiring Team */}
+      <ExecutiveSummaryBanner />
 
       {/* Zone stats cards */}
       <ZoneStatsCards stats={stats} />
@@ -28,10 +22,10 @@ export default async function HomePage() {
       {/* Price chart */}
       <PriceChart data={hourly} />
 
-      {/* Customer cost calculator */}
+      {/* Customer cost calculator with smart time intervals */}
       <ImpactCalculator stats={stats} />
 
-      {/* AI Assistant */}
+      {/* Floating AI Assistant Widget */}
       <AIAssistantWidget />
     </div>
   );
