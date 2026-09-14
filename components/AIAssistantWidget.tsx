@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, Send, User, Sparkles, X, Headset, ChevronDown, Lock } from 'lucide-react';
+import { Bot, Send, User, Sparkles, X, Headset, ChevronDown, Lock, Scale, ShieldAlert } from 'lucide-react';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -47,18 +47,16 @@ export default function AIAssistantWidget() {
     }
   }, [messages, isOpen]);
 
-  // Clean Mode Toggle: Replaces or updates the welcome message without piling them up in a stack
+  // Clean Mode Toggle
   const handleToggleMode = () => {
     const nextMode = !isHumanMode;
     setIsHumanMode(nextMode);
 
     setMessages(prev => {
-      // 1. If only initial welcome message exists, swap it cleanly
       if (prev.length <= 1) {
         return [nextMode ? humanWelcomeMessage : aiWelcomeMessage];
       }
 
-      // 2. If the last message is an un-replied welcome message, replace it instead of stacking
       const lastMsg = prev[prev.length - 1];
       if (lastMsg.role === 'assistant' && (lastMsg.content.includes('🤖 Hej!') || lastMsg.content.includes('👋 Hej!'))) {
         const updated = [...prev];
@@ -66,7 +64,6 @@ export default function AIAssistantWidget() {
         return updated;
       }
 
-      // 3. Otherwise append single mode welcome notice
       return [...prev, nextMode ? humanWelcomeMessage : aiWelcomeMessage];
     });
   };
@@ -248,10 +245,10 @@ export default function AIAssistantWidget() {
 
       {/* 4. Floating Openable Chat Drawer */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-[380px] h-[520px] max-w-[calc(100vw-2rem)] z-50 bg-white rounded-2xl shadow-2xl border border-[#e5e3e1] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-24 right-6 w-[380px] h-[540px] max-w-[calc(100vw-2rem)] z-50 bg-white rounded-2xl shadow-2xl border border-[#e5e3e1] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
           
           {/* Dynamic Header */}
-          <div className={`p-4 text-white flex items-center justify-between shadow-xs transition-colors ${isHumanMode ? 'bg-[#2c2827]' : 'bg-[#0b8454]'}`}>
+          <div className={`p-3.5 text-white flex items-center justify-between shadow-xs transition-colors ${isHumanMode ? 'bg-[#2c2827]' : 'bg-[#0b8454]'}`}>
             <div className="flex items-center gap-2.5">
               <div className="bg-white/20 p-2 rounded-lg">
                 {isHumanMode ? <Headset className="w-5 h-5 text-white" /> : <Bot className="w-5 h-5 text-white" />}
@@ -282,6 +279,16 @@ export default function AIAssistantWidget() {
               <X className="w-5 h-5" />
             </button>
           </div>
+
+          {/* EU AI Act Transparency Banner */}
+          {!isHumanMode && (
+            <div className="bg-[#2c2827] text-white px-3 py-1.5 text-[10.5px] flex items-center gap-1.5 border-b border-[#0b8454]/40">
+              <Scale className="w-3.5 h-3.5 text-[#f5a623] shrink-0" />
+              <span>
+                <strong>EU AI Act Transparens:</strong> Du kommunicerar med en automatiserad AI-assistent. Svaren är vägledande.
+              </span>
+            </div>
+          )}
 
           {/* Action Bar: BankID & Mode Switcher */}
           <div className="bg-[#e7f6f0] px-3 py-2 border-b border-[#0b8454]/20 flex items-center justify-between text-xs">
