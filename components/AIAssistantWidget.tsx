@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Bot, Send, User, Sparkles } from 'lucide-react';
 
 interface Message {
@@ -17,52 +17,83 @@ export default function AIAssistantWidget() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const isFetchingRef = useRef(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || loading) return;
+    const query = input.trim();
 
-    const userMessage: Message = { role: 'user', content: input };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
-    setInput('');
+    // Loop & Double-submit Guard: Block if empty, loading, or currently fetching
+    if (!query || loading || isFetchingRef.current) return;
+
+    isFetchingRef.current = true;
     setLoading(true);
+
+    const userMessage: Message = { role: 'user', content: query };
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
+    setInput('');
+
+    // Timeout Guard: Abort request after 10 seconds to prevent hanging or infinite loops
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     try {
       const res = await fetch('/api/ai-assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages })
+        body: JSON.stringify({ messages: updatedMessages.slice(-6) }),
+        signal: controller.signal
       });
 
-      if (!res.ok) throw new Error('AI Route Failed');
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        throw new Error(`HTTP error ${res.status}`);
+      }
 
       const reader = res.body?.getReader();
-      const decoder = new TextDecoder();
-      let assistantResponse = '';
+      if (!reader) throw new Error('No reader available');
 
+      const decoder = new TextDecoder('utf-8');
+      let assistantText = '';
+
+      // Append empty assistant message placeholder
       setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          assistantResponse += chunk;
-          
-          setMessages(prev => {
-            const updated = [...prev];
-            updated[updated.length - 1] = { role: 'assistant', content: assistantResponse };
-            return updated;
-          });
-        }
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const textChunk = decoder.decode(value, { stream: true });
+        assistantText += textChunk;
+
+        setMessages(prev => {
+          const next = [...prev];
+          next[next.length - 1] = { role: 'assistant', content: assistantText };
+          return next;
+        });
       }
-    } catch (err) {
-      setMessages(prev => [
-        ...prev,
-        { role: 'assistant', content: 'Ursäkta, jag kunde inte ansluta till AI-tjänsten just nu. Kontrollera att din OPENAI_API_KEY är inställd i .env.local.' }
-      ]);
+    } catch (err: any) {
+      console.error('AI Chat Error:', err);
+      const isAbort = err.name === 'AbortError';
+      const errorMsg = isAbort 
+        ? 'Förfrågan tog för lång tid. Vänligen försök igen.' 
+        : 'Ursäkta, kunde inte ansluta till AI-tjänsten. Kontrollera att din OPENAI_API_KEY är inställd i .env.local.';
+
+      setMessages(prev => {
+        // If placeholder was added, update it; otherwise append
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg && lastMsg.role === 'assistant' && lastMsg.content === '') {
+          const next = [...prev];
+          next[next.length - 1] = { role: 'assistant', content: errorMsg };
+          return next;
+        }
+        return [...prev, { role: 'assistant', content: errorMsg }];
+      });
     } finally {
+      clearTimeout(timeoutId);
+      isFetchingRef.current = false;
       setLoading(false);
     }
   };
@@ -88,28 +119,29 @@ export default function AIAssistantWidget() {
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs text-white shrink-0 font-bold ${m.role === 'user' ? 'bg-[#2c2827]' : 'bg-[#0b8454]'}`}>
               {m.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
             </div>
-            <div className={`p-3.5 rounded-lg max-w-[80%] ${m.role === 'user' ? 'bg-[#0b8454] text-white rounded-tr-none font-medium' : 'bg-white border border-[#e5e3e1] text-[#2c2827] rounded-tl-none shadow-xs'}`}>
+            <div className={`p-3.5 rounded-lg max-w-[80%] whitespace-pre-wrap leading-relaxed ${m.role === 'user' ? 'bg-[#0b8454] text-white rounded-tr-none font-medium' : 'bg-white border border-[#e5e3e1] text-[#2c2827] rounded-tl-none shadow-xs'}`}>
               {m.content || <span className="animate-pulse">Tänker...</span>}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Input Form with Ellevio Primary Button */}
+      {/* Input Form */}
       <form onSubmit={handleSubmit} className="flex gap-3">
         <input 
           type="text" 
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="t.ex. Varför skiljer sig elpriset i SE1 och SE3?"
-          className="flex-1 bg-white border border-[#757575] rounded-lg px-4 py-3 text-sm text-[#2c2827] focus:outline-none focus:border-[#0b8454]"
+          disabled={loading}
+          className="flex-1 bg-white border border-[#757575] rounded-lg px-4 py-3 text-sm text-[#2c2827] focus:outline-none focus:border-[#0b8454] disabled:bg-gray-100"
         />
         <button 
           type="submit" 
           disabled={loading}
           className="btn-ellevio-primary flex items-center gap-2 disabled:opacity-50"
         >
-          <span>Skicka</span>
+          <span>{loading ? 'Skickar...' : 'Skicka'}</span>
           <Send className="w-4 h-4" />
         </button>
       </form>
