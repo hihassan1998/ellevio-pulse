@@ -3,7 +3,7 @@
 **Kandidat:** Hassan Hussain  
 **Tjänst:** Webbansvarig (Stockholm / Karlstad)  
 **Företag:** Ellevio AB  
-**Dokumenttyp:** Strategisk intervjuförberedelse, produktanalys & onboardingplan  
+**Dokumenttyp:** Strategisk intervjuförberedelse, produktanalys, teknisk arkitektur & onboardingplan  
 **Repository:** [github.com/hihassan1998/ellevio-pulse](https://github.com/hihassan1998/ellevio-pulse)  
 **Portfölj:** [hihassan1998.github.io](https://hihassan1998.github.io) | **anotherAI:** [anotheraiplatform.com](https://anotheraiplatform.com)
 
@@ -23,7 +23,7 @@ Briefen analyserar Ellevios strategiska utmaningar och visar hur demoprojektet *
                             ELLEVIOPULSE ARKITEKTUR
  ┌─────────────────────────────────────────────────────────────────────────────┐
  │                         HEADER & DISCLAIMER BANNER                          │
- │      • Transparens & Friskrivningsklausul för Ellevio AB & LinkedIn        │
+ │      • EU AI Act Transparens & Friskrivningsklausul för Ellevio AB          │
  └─────────────────────────────────────────────────────────────────────────────┘
                                        │
  ┌─────────────────────────────────────┴───────────────────────────────────────┐
@@ -48,7 +48,7 @@ Briefen analyserar Ellevios strategiska utmaningar och visar hur demoprojektet *
 * **Det Identifierade Problemet (Issue):**  
   Elmarknaden är komplex för icke-tekniska konsumenter. Skillnader i spotpriser och överföringskapacitet mellan norra (SE1/SE2) och södra Sverige (SE3/SE4) skapar ofta förvirring och kundfrågor på `ellevio.se`.
 * **Implementerad Lösning (Solution):**  
-  En interaktiv, tillgänglighetsanpassad (WCAG 2.1 AA) Recharts-grafer som hämtar levande data från det öppna API:et `elprisetjustnu.se`. Graferna visar spotpriser i öre/kWh inkl. moms och ger snabba nyckeltal (snitt, min, max) per elområde.
+  En interaktiv, tillgänglighetsanpassad (WCAG 2.1 AA) Recharts-graf som hämtar levande data från det öppna API:et `elprisetjustnu.se`. Graferna visar spotpriser i öre/kWh inkl. moms och ger snabba nyckeltal (snitt, min, max) per elområde.
 * **Framtida Utvecklingsidéer (Future Improvements):**  
   * **Integration med Svenska Kraftnäts (SVK) Elflödesdata:** Visualisera fysiska överföringskapaciteter och flaskhalsar mellan elområdena i realtid.
   * **Interaktiv Strömavbrottskarta:** Integrera Ellevios kartdata för avbrottshantering direkt i graferna för att visa om ett prisavvik beror på lokalt nätunderhåll.
@@ -72,7 +72,7 @@ Briefen analyserar Ellevios strategiska utmaningar och visar hur demoprojektet *
 * **Det Identifierade Problemet (Issue):**  
   På Ellevios nuvarande webbplats slussas kundchatten direkt till mänskliga operatörer. Under toppar (t.ex. vid oväder eller fakturering) blir köerna långa. Samtidigt saknas uppföljning kring vilka ärenden kunderna föredrar att lösa via självbetjäning vs mänsklig kontakt.
 * **Implementerad Lösning (Solution):**  
-  En flytande bottom-right chattdrawer med OpenAI `gpt-4o-mini` som svara på 100% ren svenska dygnet runt. Inkluderar:
+  En flytande bottom-right chattdrawer med OpenAI `gpt-4o-mini` som svarar på 100% ren svenska dygnet runt. Inkluderar:
   * **EU AI Act Transparensbanner (Artikel 50):** Tydlig märkning att kunden pratar med en automatiserad AI-assistent.
   * **Byt till Mänsklig Kontakt (Human-in-the-Loop):** Växlar gränssnittet till en mänsklig operatör (Maria, Ellevio Kundtjänst) med grön statusindikator `🟢`.
   * **BankID Demo-Knapp:** Visar säker legitimering i uppvisningssyfte utan krascher.
@@ -92,7 +92,113 @@ Briefen analyserar Ellevios strategiska utmaningar och visar hur demoprojektet *
 
 ---
 
-## Del 2: Matchning mot Ellevios Kravprofil & Hassans Erfarenhet
+## Del 2: Tekniska Beslut & Teknikvalsanalys
+
+I detta demoprojekt har valen av teknologier gjorts utifrån ett strikt balansförhållande mellan **prestanda, tillgänglighet (WCAG), framtidssäkerhet och förvaltbarhet**.
+
+### 1. Vald Teknikstack (Valda teknologier & varför)
+
+| Teknologival | Varför detta valdes för EllevioPulse |
+| :--- | :--- |
+| **Next.js 15 (App Router & React 19)** | Ger både Server-Side Rendering (SSR) och Static Site Generation (SSG). Möjliggör blixtsnabb första laddtid, optimal SEO för Ellevios publika sidor och säkra serverlösningar för API-rutter utan exponering av API-nycklar. |
+| **TypeScript (Strict Mode)** | Garanterar typsäkerhet över hela applikationen. Förhindrar runtime-krascher och `null/undefined`-fel vid hantering av externt API-data (t.ex. spotpris-JSON från `elprisetjustnu.se`). |
+| **Tailwind CSS v4** | Verktygsbaserad CSS som tillåter exakt implementering av Ellevios designsystem (`#0b8454` grön, `#2c2827` mörk text, `#f2f1f0` yta) utan tung runtime-overhead eller CSS-in-JS prestandaförluster. |
+| **Recharts** | Lättviktigt, tillgänglighetsanpassat SVG-diagrambibliotek som är enkelt att göra responsivt och anpassa för skärmläsare och tangentbordsnavigering. |
+| **Vercel AI SDK + OpenAI `gpt-4o-mini`** | Ger streamade svar (`toTextStreamResponse`) i realtid med minimal latens. `gpt-4o-mini` valdes för att ge 99% av prestandan till 1/10 av kostnaden jämfört med `gpt-4o`. |
+| **Lucide Icons** | Vektoriserade, WCAG-anpassade ikonkomponenter med inbyggd skärmläsar-tillgänglighet. |
+
+### 2. Avfärdade Alternativ (Vad som inte valdes & varför)
+
+* **Client-Side Single Page Application (Vite + React / Untyped JS):**  
+  * *Varför bortvalt:* Saknar inbyggd SSR. Detta ger sämre SEO-indexering och längre "Time to Interactive" (TTI) för kunder på mobila nätverk. Utan TypeScript ökar också risken för tysta datatypfel i produktion.
+* **Tunga UI-Komponentbibliotek (MUI / Bootstrap / Ant Design):**  
+  * *Varför bortvalt:* Orsakar stor JavaScript-bundle-storlek (bloat), har rigid fördefinierad styling som är svår att anpassa till Ellevios unika varumärkesprofil, samt skapar prestandahinder på mobila enheter.
+* **Tung RAG / Vektordatabas-infrastruktur (Pinecone / LangChain):**  
+  * *Varför bortvalt:* För ett renodlat demo- och självbetjäningsgränssnitt tillför vektordatabaser onödig komplexitet, latens och höga molnkostnader. Istället användes strukturerad prompt-engineering och lokal databeräkning för omedelbar respons.
+* **WebSockets för chatt backend:**  
+  * *Varför bortvalt:* Kräver permanent servertillstånd och komplex lasthantering (sticky sessions). HTTP-streamade API-rutter via Vercel AI SDK ger samma realtidskänsla med betydligt enklare, serverlös och skalbar arkitektur.
+
+---
+
+## Del 3: Hassans Arbetssätt, Metodik & Överförbara Kompetenser
+
+### 1. Det Klassiska 4-Fasiga Strategiska Ramverket
+
+Hassan strukturerar allt sitt arbete kring den etablerade 4-fasiga produkt- och förändringsmodellen:
+
+```
+                     DET KLASSISKA 4-FASIGA RAMVERKET
+ ┌──────────────────────┐   ┌──────────────────────┐   ┌──────────────────────┐   ┌──────────────────────┐
+ │     1. VISION        │ ─►│    2. MASTER PLAN    │ ─►│  3. IMPLEMENTATION   │ ─►│    4. ADAPTATION     │
+ │ Identifiera behov,   │   │ Arkitektur, krav,    │   │ Bygga, prototypa &   │   │ Utvärdera insikter,  │
+ │ utmaningar & mål.    │   │ specifikationer & UX.│   │ lansera källkod.     │   │ kantfall & förfina.  │
+ └──────────────────────┘   └──────────────────────┘   └──────────────────────┘   └──────────────────────┘
+```
+
+* **Fas 1: Vision (Nulägesanalys & Målbild):**  
+  Att kartlägga varför förändringen behövs, förstå affärsmålen och etablera en tydlig riktning för digital kommunikation och funktionalitet.
+* **Fas 2: Master Plan (Strategisk Arkitektur & Design):**  
+  Att bryta ner visionen i konkreta, delbara specifikationer, användarflöden, målgruppsprofiler och tekniska kravställningar innan resurser låses i kod.
+* **Fas 3: Implementation (Exekvering & Prototypning):**  
+  Att snabbt och agilt omsätta planerna till fungerande, typsäker källkod, tillgänglighetsanpassade gränssnitt och testbara lösningar.
+* **Fas 4: Adaptation (Revision, Iteration & Långsiktig Förvaltning):**  
+  Att kontinuerligt utvärdera lösningen mot verkliga användardata, hantera kantfall (edge cases), säkerställa legala krav (EU AI Act, WCAG) och refaktorisera utifrån användarfeedback.
+
+---
+
+### 2. Hassans Egenutvecklade 7-Stegs Operativa Strategi
+
+För att omsätta det 4-fasiga ramverket i det dagliga arbetet använder Hassan sin egenutvecklade **7-stegs operativa exekveringsmodell**:
+
+```
+                   HASSANS OPERATIVA 7-STEGSSTRATEGI
+ ┌─────────────────────────────────────────────────────────────────────────────┐
+ │ 1. PINPOINTA PROBLEMET  ► Bryt ner den faktiska utmaningen & målet.         │
+ ├─────────────────────────────────────────────────────────────────────────────┤
+ │ 2. DEFINIERA MÅLGRUPP   ► Vem drabbas? (Icke-tekniska kunder, redaktörer).  │
+ ├─────────────────────────────────────────────────────────────────────────────┤
+ │ 3. DOKUMENTERA & DELA   ► Skriv öppna specifikationer (docs/specs/).        │
+ ├─────────────────────────────────────────────────────────────────────────────┤
+ │ 4. PROTOTYPA & TESTA    ► Bygg den starkaste lösningen iterativt i kod.     │
+ ├─────────────────────────────────────────────────────────────────────────────┤
+ │ 5. MÅLGRUPPSREFAKTOR    ► Justera UX, språk och kontrast efter insikter.    │
+ ├─────────────────────────────────────────────────────────────────────────────┤
+ │ 6. EDGE-CASE REVISION   ► Granska kantområden, tillgänglighet & lagkrav.    │
+ ├─────────────────────────────────────────────────────────────────────────────┤
+ │ 7. HELHETSANSVAR        ► Sätt dig in i alla system utanför egen roll.     │
+ └─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Hur Hassans 7 steg exekverar de 4 faserna:
+
+1. **Under Fas 1 (Vision):**
+   * **Steg 1: Pinpointa & Förstå Problemet:** Bryter ner utmaningen till dess rotorsak (t.ex. varför kunder kontaktar kundtjänst eller varför el-information upplevs svår).
+2. **Under Fas 2 (Master Plan):**
+   * **Steg 2: Identifiera Målgrupp (Målgruppsanalys):** Skräddarsyr lösningen utifrån vem som drabbas – från icke-tekniska privatkunder till interna redaktörer och kundtjänstpersonal.
+   * **Steg 3: Idégenerering & Dokumentation för Delbarhet:** Skriver öppna tekniska specifikationer (`docs/specs/`) som dokumenterar arkitektur, regler och idéer. Detta möjliggör transparent dialog och feedback med kollegor och ledning innan kod låses.
+3. **Under Fas 3 (Implementation):**
+   * **Steg 4: Iterativ Utveckling & Prototypbygge:** Snabb implementering av den bästa kandidatlösningen i källkod för att skapa en levande, testbar prototyp.
+   * **Steg 5: Målgruppsanpassad Refaktorisering:** Refaktorerar och finjusterar UX, layout, tillgänglighet och copy baserat på målgruppens respons och faktiska användningsmönster.
+4. **Under Fas 4 (Adaptation):**
+   * **Steg 6: Noggrann Granskning & Kantfalls-Testning (Edge Cases):** Revision från användarens perspektiv. Vad händer om externt API fallerar? Fungerar tangentbordsnavigering? Efterlevs EU AI Act och GDPR?
+   * **Steg 7: Helhetsansvar & Tekniknyfikenhet:** Proaktivt ta ansvar för att förstå även de tekniska delar som ligger utanför mitt omedelbara ansvarsområde (backend, molnarkitektur, legala ramverk, databaser). Detta skapar sömlös samverkan i tvärfunktionella team och garanterar långsiktigt hållbara digitala lösningar.
+
+---
+
+### 3. Överförbara Kompetenser för Rollen som Webbansvarig
+
+* **Tvärfunktionell Kommunikation & Brobyggare:**  
+  Förmåga att översätta komplexa IT- och elnätskoncept till ett enkelt, pedagogiskt språk som alla förstår.
+* **Produktledarskap & Entreprenörskap (anotherAI):**  
+  Erfarenhet av att ha drivit en enskild firma, prioriterat roadmap, hanterat kundkrav och **lett 2 underkonsulter**.
+* **Industri- och Teknikförståelse:**  
+  Erfarenhet från **Hitachi Energy** (nätverk/migrering) och **Badger Meter** (programmering av ABB IRC5-robotar), vilket ger en djup respekt för Ellevios industriella och samhällskritiska uppdrag.
+* **Kvalitets- och Regelverkstänk (WCAG & EU AI Act):**  
+  Formell utbildning (BTH 120 hp) i digital tillgänglighet och praktisk tillämpning av EU:s nyaste AI-regelverk.
+
+---
+
+## Del 4: Matchning mot Ellevios Kravprofil & Hassans Erfarenhet
 
 | Ellevios Krav i Annonsen | Hassans Bevisade Erfarenhet & Portfölj | Hur det demonstreras i EllevioPulse |
 | :--- | :--- | :--- |
@@ -105,7 +211,7 @@ Briefen analyserar Ellevios strategiska utmaningar och visar hur demoprojektet *
 
 ---
 
-## Del 3: Onboardingplan & Framtida Fokusområden hos Ellevio
+## Del 5: Onboardingplan & Framtida Fokusområden hos Ellevio
 
 Om jag blir aktuell för tjänsten som Webbansvarig på Ellevio kommer jag under de första 90 dagarna att fokusera på följande tre områden:
 
@@ -127,7 +233,7 @@ Om jag blir aktuell för tjänsten som Webbansvarig på Ellevio kommer jag under
 
 ---
 
-## Del 4: Löneförhandling & Strategi
+## Del 6: Löneförhandling & Strategi
 
 ### Target Lönenivå: **43 000 – 47 000 SEK / månad**
 
@@ -141,7 +247,7 @@ Om jag blir aktuell för tjänsten som Webbansvarig på Ellevio kommer jag under
 
 ---
 
-## Del 5: Snabba Intervjusvar (Cheatsheet)
+## Del 7: Snabba Intervjusvar (Cheatsheet)
 
 * **Fråga: "Hur ser du på rollen som Webbansvarig på Ellevio?"**  
   *Svar:* "För mig handlar rollen om att hålla ihop helheten på `ellevio.se` – att göra komplex elnätsinformation enkel, lättillgänglig och användarvänlig för nästan en miljon kunder, samtidigt som vi nyttjar modern teknik och AI för att kontinuerligt förbättra kundupplevelsen."
@@ -149,6 +255,8 @@ Om jag blir aktuell för tjänsten som Webbansvarig på Ellevio kommer jag under
   *Svar:* "Tillgänglighet handlar inte bara om lagkrav (DOS-lagen), utan om god UX för alla. Från min utbildning på BTH arbetar jag med semantisk HTML, tydliga kontrastförhållanden, tangentbordsnavigering och skärmläsarstöd från första början."
 * **Fråga: "Hur använder du AI i ditt dagliga arbete?"**  
   *Svar:* "Jag använder AI för allt från att snabbt strukturera och målgruppsanpassa texter till SEO-analyser och automatisering. I mitt demoprojekt visar jag också hur AI kan avlasta kundtjänst dygnet runt med bibehållen transparens enligt EU AI Act."
+* **Fråga: "Hur tacklar du ett nytt projekt eller en komplicerad utmaning?"**  
+  *Svar:* "Jag arbetar utifrån det klassiska 4-fasiga strategiramverket (Vision ➔ Master Plan ➔ Implementation ➔ Adaptation) och exekverar det med min egenutvecklade 7-stegsmetod: jag pinpointar kärnproblemet, definierar målgruppen, dokumenterar idéer och beslut för öppen dialog med teamet, bygger en fungerande prototyp, refaktorerar utifrån målgruppens feedback, granskar kantfall/tillgänglighet och tar helhetsansvar för alla relaterade tekniska system."
 
 ---
 
