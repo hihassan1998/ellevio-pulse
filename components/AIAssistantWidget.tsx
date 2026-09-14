@@ -209,7 +209,7 @@ export default function AIAssistantWidget() {
 
       {/* 2. Looping Tooltip Speech Bubble */}
       {showTooltip && !isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 max-w-[260px] bg-[#2c2827] text-white text-xs p-3 rounded-2xl shadow-xl border border-[#0b8454] animate-bounce flex items-start justify-between gap-2">
+        <div className="fixed bottom-20 right-4 sm:bottom-24 sm:right-6 z-50 max-w-[calc(100vw-2rem)] sm:max-w-[280px] bg-[#2c2827] text-white text-xs p-3 rounded-2xl shadow-xl border border-[#0b8454] animate-bounce flex items-start justify-between gap-2 break-words [overflow-wrap:anywhere]">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[#f5a623] shrink-0" />
             <span className="font-medium">{tooltipPrompts[tooltipMessageIndex]}</span>
@@ -225,27 +225,25 @@ export default function AIAssistantWidget() {
       )}
 
       {/* 3. Floating Trigger Icon Button */}
-      <button
-        onClick={() => {
-          setIsOpen(!isOpen);
-          setShowTooltip(false);
-        }}
-        className={`fixed bottom-6 right-6 z-50 text-white p-4 rounded-full shadow-2xl transition-all transform hover:scale-105 border-2 border-white flex items-center justify-center group ${isHumanMode ? 'bg-[#2c2827]' : 'bg-[#0b8454] hover:bg-[#0f5a46]'}`}
-        aria-label="Öppna Kundassistent"
-      >
-        {isOpen ? (
-          <ChevronDown className="w-7 h-7" />
-        ) : (
+      {!isOpen && (
+        <button
+          onClick={() => {
+            setIsOpen(true);
+            setShowTooltip(false);
+          }}
+          className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 text-white p-3.5 sm:p-4 rounded-full shadow-2xl transition-all transform hover:scale-105 border-2 border-white flex items-center justify-center group ${isHumanMode ? 'bg-[#2c2827]' : 'bg-[#0b8454] hover:bg-[#0f5a46]'}`}
+          aria-label="Öppna Kundassistent"
+        >
           <div className="relative">
-            {isHumanMode ? <Headset className="w-7 h-7" /> : <Bot className="w-7 h-7" />}
+            {isHumanMode ? <Headset className="w-6 h-6 sm:w-7 sm:h-7" /> : <Bot className="w-6 h-6 sm:w-7 sm:h-7" />}
             <span className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${isHumanMode ? 'bg-emerald-400' : 'bg-[#f5a623]'}`} />
           </div>
-        )}
-      </button>
+        </button>
+      )}
 
-      {/* 4. Floating Openable Chat Drawer */}
+      {/* 4. Openable Chat Drawer (Dynamic Full-Screen on Mobile 100dvh, Floating Box on Desktop) */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-[380px] h-[540px] max-w-[calc(100vw-2rem)] z-50 bg-white rounded-2xl shadow-2xl border border-[#e5e3e1] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed inset-0 sm:inset-auto sm:bottom-24 sm:right-6 w-full sm:w-[380px] h-[100dvh] sm:h-[540px] sm:max-h-[560px] z-[100] bg-white sm:rounded-2xl shadow-2xl border-0 sm:border sm:border-[#e5e3e1] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
           
           {/* Dynamic Header */}
           <div className={`p-3.5 text-white flex items-center justify-between shadow-xs transition-colors ${isHumanMode ? 'bg-[#2c2827]' : 'bg-[#0b8454]'}`}>
