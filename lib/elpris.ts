@@ -6,12 +6,20 @@ export interface HourlyPrice {
   SE4: number;
 }
 
+export interface IntervalPrices {
+  slot_00_06: number; // Natt (00-06)
+  slot_06_12: number; // Morgon (06-12)
+  slot_12_18: number; // Eftermiddag (12-18)
+  slot_18_24: number; // Kväll (18-24)
+}
+
 export interface ZoneStats {
   zone: string;
   name: string;
   avgPrice: number;
   minPrice: number;
   maxPrice: number;
+  intervals: IntervalPrices;
 }
 
 export async function fetchZonePrices(zone: 'SE1' | 'SE2' | 'SE3' | 'SE4', dateStr: string) {
@@ -25,6 +33,7 @@ export async function fetchZonePrices(zone: 'SE1' | 'SE2' | 'SE3' | 'SE4', dateS
     
     return data.map((item: any) => ({
       time: new Date(item.time_start).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }),
+      hour: new Date(item.time_start).getHours(),
       priceOre: Math.round(item.SEK_per_kWh * 100 * 1.25 * 10) / 10 // öre/kWh incl 25% VAT
     }));
   } catch (error) {
@@ -61,15 +70,36 @@ export async function getAggregatedPrices(): Promise<{ hourly: HourlyPrice[]; st
     });
   }
 
+  const computeIntervals = (arr: number[]): IntervalPrices => {
+    const calcAvg = (start: number, end: number) => {
+      const slice = arr.slice(start, end);
+      if (slice.length === 0) return 0;
+      return Math.round((slice.reduce((a, b) => a + b, 0) / slice.length) * 10) / 10;
+    };
+
+    return {
+      slot_00_06: calcAvg(0, 6),
+      slot_06_12: calcAvg(6, 12),
+      slot_12_18: calcAvg(12, 18),
+      slot_18_24: calcAvg(18, 24)
+    };
+  };
+
   const computeStats = (zone: string, name: string, arr: number[]): ZoneStats => {
-    if (arr.length === 0) return { zone, name, avgPrice: 0, minPrice: 0, maxPrice: 0 };
+    if (arr.length === 0) {
+      return {
+        zone, name, avgPrice: 0, minPrice: 0, maxPrice: 0,
+        intervals: { slot_00_06: 0, slot_06_12: 0, slot_12_18: 0, slot_18_24: 0 }
+      };
+    }
     const sum = arr.reduce((a, b) => a + b, 0);
     return {
       zone,
       name,
       avgPrice: Math.round((sum / arr.length) * 10) / 10,
       minPrice: Math.min(...arr),
-      maxPrice: Math.max(...arr)
+      maxPrice: Math.max(...arr),
+      intervals: computeIntervals(arr)
     };
   };
 
