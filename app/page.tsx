@@ -5,19 +5,19 @@ import ZoneStatsCards from '@/components/ZoneStatsCards';
 import ImpactCalculator from '@/components/ImpactCalculator';
 import AIAssistantWidget from '@/components/AIAssistantWidget';
 
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 3600;
 
 export default async function HomePage() {
   const { hourly, stats } = await getAggregatedPrices();
 
   return (
-    <div>
+    <div className="space-y-8">
       {/* Introduction banner */}
-      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs mb-8">
-        <h1 className="text-2xl font-black text-gray-900 tracking-tight">
-          Välkommen till Ellevio<span className="text-[#005A9C]">Pulse</span>
+      <div className="card-ellevio border-l-4 border-l-[#0b8454]">
+        <h1 className="text-2xl font-bold text-[#2c2827] tracking-tight">
+          Välkommen till Ellevio<span className="text-[#0b8454]">Pulse</span>
         </h1>
-        <p className="text-sm text-gray-600 mt-2 max-w-3xl leading-relaxed">
+        <p className="text-sm text-[#757575] mt-2 max-w-3xl leading-relaxed">
           Detta demoprojekt visar hur Ellevios digitala kanaler kan visualisera realtidskunddata från Sveriges fyra elområden (SE1–SE4), förenkla komplexa elnätskoncept och nyttja Generativ AI för snabb kundtjänststöttning.
         </p>
       </div>
